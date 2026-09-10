@@ -17,7 +17,7 @@ After changing anything under `skills/notyet/`, work down this table:
 | what a script reports, refuses or covers | that script's line in `SKILL.md`'s References section, its row in the README table, **and** the sweep's own paragraph in `references/review.md` |
 | a sweep's status, or the evidence behind it | its status line in `references/review.md` **and** the matching bullet in `README.md`'s "Where the evidence stops" |
 | the `description` in `SKILL.md`'s frontmatter | nothing else — but re-measure it before trusting the change, because a description that reads well and matches nothing people actually type has a recall problem that is invisible from the inside |
-| anything a user of the skill would notice | `version` in `.claude-plugin/plugin.json` **and** in `.claude-plugin/marketplace.json` — they are two files with the same number in them |
+| anything a user of the skill would notice | `version` in **three** places: `.claude-plugin/plugin.json`, and *both* fields in `.claude-plugin/marketplace.json` — its top-level `version` and `plugins[0].version`. This row said "two files" until a bump found the third; a rule that undercounts what it is guarding is the same stale-scaffolding failure one level up |
 
 **Where drift lands here:** four places have to agree with the files, and nothing automatic checks any of them — `SKILL.md`'s References section, its routing paragraph, the README's "What's in the box" table, and the README's "Where the evidence stops" list. Every mistake this repository has made so far was one of them disagreeing with reality.
 

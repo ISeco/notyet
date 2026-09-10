@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "notyet",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Sets up or prunes the scaffolding an AI coding agent needs in a repository — and says what the project does not need yet.",
   "author": {
     "name": "Ignacio Seco",

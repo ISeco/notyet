@@ -18,6 +18,7 @@ Asking for something you could have read is worse than useless: it costs the per
 | Test and type coverage | What was chosen deliberately against the obvious option |
 | Auth present, repo public or private | What hurts today |
 | Length of git history | |
+| Whether a placement convention exists, and whether the tree follows it | |
 
 Close this step by telling them what you found and inviting correction. Reading a repo wrong and then building on it is expensive.
 
@@ -61,6 +62,23 @@ For each: name the failure, ask its question, and only if the answer warrants it
 F5, F6 and F8 describe the model, not the project, so asking *"does this apply to you?"* is the wrong question — it applies to everyone. Propose them as a block of triggers for the contract and let them strike any they don't want.
 
 Each of these lines is also a candidate for a deterministic hook, because written instructions get skipped under context pressure while a hook does not. A hook can **fire or block**; it cannot **judge**. So the trigger table is the hook shortlist, and everything requiring judgment stays as instruction. Tool-specific hook syntax lives in `references/tooling.md`, never in the contract itself.
+
+## Step 4b — The shape of new code
+
+Everything above tells the model what not to break and what not to read. Nothing yet tells it what the code it writes should look like — and absent a decision, it doesn't produce chaos. It produces a locally reasonable arrangement, and a different locally reasonable arrangement next session. That is F8 before there is anything to diverge from, and it is the one case where the cheapest fix is a decision made in advance rather than a ritual applied afterwards.
+
+**Observe first, as always.** If the tree already answers this and answers it consistently, read it back and ask for confirmation — that costs the person nothing and is more accurate than their from-memory answer. Ask only where the tree is empty, inconsistent, or old enough that nobody remembers deciding.
+
+Two slots, both project-specific, both proposed with a default that costs one word to reject:
+
+1. **Where new code goes.** One line per kind of thing: a module, an endpoint, a screen, a migration. On an empty repository this is the highest-value line in the whole contract, because every file written after it inherits the answer — and it is the line that a project starting from nothing cannot get from observation, because there is nothing to observe.
+2. **What new code must satisfy.** Only what no tool enforces. If a linter, formatter or type already catches it, it does not go in the contract. Same rule as the invariants section, same reason: the cheaper mechanism always wins, and a contract that repeats a formatter pays for it on every session forever.
+
+**This is where a contract goes from forty lines to four hundred.** The second slot is the dangerous one — it invites a style guide, and a style guide is the single most expensive thing you can put in a file that loads every session. Three real constraints beat a chapter.
+
+**This is not F5, and must not be argued against with F5's trigger.** Deciding where a module lives is organisational: cheap, reversible, the file moves. Building an interface for one implementation is structural: expensive, and hard to withdraw once code depends on it. *Name the second implementation first* is about the second thing. A project with no placement rule does not stay minimal by default — it accumulates one arrangement per session, which is more total structure than deciding once, not less.
+
+*Status: distilled from a single greenfield project, where the author wrote the module map and the code conventions by hand before the code existed and found that the agent followed them. That it generalises is design reasoning, not a measured result — and greenfield is the case this skill has the least evidence for overall, since setup mode has never run on a large repository either.*
 
 ## Step 5 — Write the output
 

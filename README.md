@@ -27,6 +27,8 @@ So a piece has to buy a concrete benefit today that beats that cost. `notyet` is
 
 **Setup mode** — for a project with no scaffolding, or ad-hoc scaffolding nobody decided on. It reads the repo first, asks three gating questions, walks the model failures that survived those answers, and writes the minimum: one contract file. Everything else has to be earned by an answer.
 
+On a project that is genuinely starting, that contract includes the one thing observation cannot supply — **where new code goes**. Absent a decided placement rule the model doesn't produce chaos; it produces a reasonable arrangement, then a different reasonable arrangement next session. Deciding it once is organisational and reversible, and it is the opposite of the over-building this skill exists to prevent: a project without the rule accumulates more total structure, not less.
+
 **Review mode** — for a project that was set up before, coming back to see what is now dead weight. Six sweeps, then three lists: **remove**, **add**, and **drift** — the dangerous one, because a contract promising an invariant the code stopped honouring is actively harmful.
 
 Review mode reads only. It never installs or runs anything, which is what makes it safe to point at a repository you did not write.
@@ -60,6 +62,8 @@ It works. The nine failures are the model's; they happen to everyone who types, 
 
 What changes is the conservatism, and it changes in the direction people don't expect: if you can't read the code, the skill installs **less**, not more. Everything it installs is something you can't audit and won't remove later, so the threshold for every piece goes up and the "not yet" list gets longer. Every installed line gets explained in plain terms in the response, because the file itself won't be read.
 
+One thing it will still propose rather than withhold: where new code goes. "Install less" is about pieces you would have to maintain and can't audit; a placement rule is one line, and without it the agent rearranges your project a little every session. Subtracting from nothing gives nothing.
+
 You are the user for whom "install less" matters most, and that guidance is the part of this skill with the least evidence behind it — see below.
 
 ## What's in the box
@@ -86,6 +90,7 @@ This is criterion distilled from building one application with an agent, plus me
 - **The abstraction sweep produces candidates, not findings.** Measured across four codebases: 72% of what it returned were false positives, and none were confirmed unearned. It discriminates language and repo composition more than code quality — the rate varied sixtyfold between two equally mature repositories. It ships with an exclusion table built from those real false positives, and it always reports the denominator, because `0 of 1324` means the code is clean while `0 of 0` means the sweep had nothing to read.
 - **Two failures are candidates, not confirmed.** F2 and F10 are marked as hypotheses in `failures.md`, with the condition each needs to be promoted.
 - **The guidance for non-programmers is design reasoning, untested.** Nobody who fits that description has run it yet. Treat it as a starting position.
+- **The shape-of-new-code section is n=1 and greenfield.** It comes from one project where the author wrote the module map and the code conventions by hand before the code existed, and the agent followed them. That it generalises — and that the placement rule is worth its lines on a project that is *not* starting from zero — is design reasoning, not a measured result.
 - **Setup mode has never run on a large repository.** Review mode has, against a Rust codebase with twenty thousand commits. But the setup flow was designed for a project that is starting or halfway through, and what its first phase costs on a large established repo is unmeasured.
 - **Sweep 2 is the weak member of the six.** Measured twice without earning its place, and marked as such in `SKILL.md` rather than quietly presented alongside the others.
 

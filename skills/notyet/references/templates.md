@@ -28,6 +28,25 @@ Ordered so the most-violated things come first, because attention decays down th
  - Never open <file> — entire app in one file
  - Never read migrations in bulk — use the current schema instead>
 
+## Shape of new code
+<From Step 4b. Constrains what the model *writes*; everything above
+ constrains what it must not break and what it must not read.
+ Omit either slot the tree already answers consistently — an observed
+ convention beats a written one, and costs nothing per session.
+
+ Where it goes. One line per kind of thing:
+ - A new module goes in <path>/<name>/ with <the files it must contain>
+ - A new <endpoint / screen / migration> goes <where>, never <where>
+
+ What it must satisfy. Only what no tool enforces. If a linter,
+ formatter or type already catches it, it doesn't belong here —
+ same rule as Invariants, same reason. Three real constraints beat
+ a chapter; past the point where you're writing what a formatter
+ would do, stop.>
+
+**Remove when** a generator, template or lint rule enforces it. The cheaper
+mechanism always wins.
+
 ## When → do → never
 <From F5, F6, F8 and F2. This is the part that changes behaviour;
  everything above only changes knowledge. It's also the hook shortlist.>
