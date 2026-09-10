@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "notyet",
+  "owner": {
+    "name": "Ignacio Seco",
+    "url": "https://github.com/ISeco"
+  },
+  "description": "Scaffolding criterion for AI-assisted development.",
+  "version": "0.1.0",
+  "plugins": [
+    {
+      "name": "notyet",
+      "source": "./",
+      "version": "0.1.0",
+      "description": "Sets up or prunes the scaffolding an AI coding agent needs in a repository — and says what the project does not need yet."
+    }
+  ]
+}

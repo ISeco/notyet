@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "notyet",
+  "version": "0.1.0",
+  "description": "Sets up or prunes the scaffolding an AI coding agent needs in a repository — and says what the project does not need yet.",
+  "author": {
+    "name": "Ignacio Seco",
+    "url": "https://github.com/ISeco"
+  },
+  "homepage": "https://github.com/ISeco/notyet",
+  "repository": "https://github.com/ISeco/notyet",
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "scaffolding",
+    "claude-md",
+    "agents-md",
+    "code-review",
+    "over-engineering",
+    "documentation-drift"
+  ]
+}
