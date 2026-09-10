@@ -113,12 +113,15 @@ Then hand over:
 2. **The "not yet" list**, with the reason and the revisit condition for each item.
 3. **The ledger**, which records what was installed, why, its exit condition — and everything skipped with its revisit condition. But apply your own criterion to it: on a project that will be deleted in weeks, a ledger is a file nobody will ever reopen, so put the same content in the response and skip the file. A ledger earns its place when there will be a review to read it.
 4. **The count**: installations vs. exclusions plus removals.
+5. **The measurement file** — `references/measurement.md` — but only if the project will still be here in a month. Six development sessions, three before and three after a single adjustment pass, measuring auto-compaction, files read before the first edit, and anything re-explained that was already written down. It is the only way anyone finds out whether the pieces you just installed do anything, and it deletes itself once its conclusion is written. On a short-lived project, skip it and say why.
 
 ---
 
 # Mode: Review
 
 Reading a pile of docs and noticing they contradict each other is something you'd do anyway. **The value here is in the checks nobody thinks to run** — the ones that answer "is this piece still earning its keep?" rather than "is this piece correct?". Run the six sweeps first, then write the lists. Doing it in the other order produces a competent essay and misses the point.
+
+**Run them in order.** In the one repository where all six were measured, sweeps 1 → 4 → 6 formed a causal chain — two parallel scaffolding systems, no rule synchronising them, bidirectional drift as the consequence — and no sweep told that story on its own. Sweep 2 was the one that did not earn its place there; it is marked as such below.
 
 **Every sweep reports what it could not judge.** A sweep that says "3 docs are clean" while 25 referenced no source file has not told you the code is healthy; it has hidden the 25. Two independent sweeps needed this rule before it was written down, so treat it as general: give the denominator — pieces examined, pieces the sweep could actually evaluate, findings — and say which of the three a zero belongs to. An unqualified clean result is the one output of a review that can do harm, because it retires attention.
 
@@ -133,6 +136,8 @@ The second question is the one that is easy to leave out, and in the only reposi
 **2. Abstractions, in both directions.** Unearned: a declared boundary with exactly one implementation, justified by a future that didn't arrive. And the inverse: a boundary *promised* in build configuration with nothing behind it — a workspace member listed but absent, a module referenced but empty — whose cost shows up as hand-duplicated code elsewhere.
 
 This sweep produces **candidates, not findings**: measured across four codebases, 72% were false positives and none were confirmed unearned. Adjudicate each one before it reaches a list, using the exclusion table in `references/failures.md`; `scripts/abstraction_sweep.py` applies that table and prints the count. **Report boundaries scanned alongside candidates found** — `0 of 1324` means the code is clean, `0 of 0` means the sweep had nothing to read, and only the denominator tells them apart. It applies to languages that declare boundaries; in plain JavaScript or Python say so rather than reporting a clean result, and go looking for multiplying indirection and wrapper modules by reading instead.
+
+*Status: the weakest of the six, and the only one measured twice without earning its place. Across four codebases it produced 29 candidates — 72% verified false positives, none confirmed unearned — and in the repository where all six ran it was the one whose findings did not survive inspection. Its rate also varies sixtyfold between two equally mature repositories, so the output is not comparable across stacks. Run it last, treat every hit as a question rather than a finding, and if you are short of time this is the sweep to drop.*
 
 **3. Staleness by timestamp.** Compare each doc's last change against the last commit touching what it describes. A doc older than the code it documents is a candidate for drift; a generated map older than the code is simply lying. Expect a high yield — 15 of 18 judgeable docs in a well-maintained repository, several by eight months, the contract itself among them — and report how many docs referenced no source file at all, since those are the ones the sweep could not judge.
 
@@ -174,6 +179,7 @@ Close by writing or updating the ledger. A review that leaves no state behind me
 
 - `references/failures.md` — the nine model failures, each with its question, threshold and exit condition, plus candidates observed once and not yet confirmed. Read at the start of either mode.
 - `references/templates.md` — exact shape of every file you might write. Read before Step 5.
+- `references/measurement.md` — the before/after template an adopter fills in to find out whether the scaffolding helped in their project. Read at Step 5, and only for a project that will outlive the measurement.
 - `references/tooling.md` — capability → tool mapping, including hooks. Read only when you need the concrete syntax for a specific tool. Kept separate so the criterion doesn't expire when tools change.
 - `scripts/abstraction_sweep.py` — runs review sweep 2 over a repository and prints candidates with the denominator. Reads only; never installs or executes anything in the target. Run it rather than grepping by hand, then adjudicate what it returns.
 - `scripts/staleness_sweep.py` — runs review sweep 3: last-commit and first-commit comparisons between each doc and the code it references, with the count of docs it could not judge. Refuses a shallow clone, where the dates lie without erroring. Reads only. A `--filter=blob:none` clone is enough and is fast even on a repository with twenty thousand commits.

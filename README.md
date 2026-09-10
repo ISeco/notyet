@@ -83,6 +83,8 @@ This is criterion distilled from building one application with an agent, plus me
 - **The abstraction sweep produces candidates, not findings.** Measured across four codebases: 72% of what it returned were false positives, and none were confirmed unearned. It discriminates language and repo composition more than code quality — the rate varied sixtyfold between two equally mature repositories. It ships with an exclusion table built from those real false positives, and it always reports the denominator, because `0 of 1324` means the code is clean while `0 of 0` means the sweep had nothing to read.
 - **Two failures are candidates, not confirmed.** F2 and F10 are marked as hypotheses in `failures.md`, with the condition each needs to be promoted.
 - **The guidance for non-programmers is design reasoning, untested.** Nobody who fits that description has run it yet. Treat it as a starting position.
+- **Setup mode has never run on a large repository.** Review mode has, against a Rust codebase with twenty thousand commits. But the setup flow was designed for a project that is starting or halfway through, and what its first phase costs on a large established repo is unmeasured.
+- **Sweep 2 is the weak member of the six.** Measured twice without earning its place, and marked as such in `SKILL.md` rather than quietly presented alongside the others.
 
 If you run it and it gets something wrong, that is the useful outcome — open an issue. The measurement template is included precisely because one person cannot generate the n>1 this needs.
 
