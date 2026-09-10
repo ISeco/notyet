@@ -246,11 +246,45 @@ def git_meta(root):
     }
 
 
-def main():
-    if len(sys.argv) < 2:
+USAGE = "usage: abstraction_sweep.py <repo-or-source-tree> [--json]"
+KNOWN_FLAGS = {"--json"}
+
+
+def resolve_target():
+    """Validate argv. Returns (path, exit_code); path is None when main should exit.
+
+    A sweep that reports a denominator must not accept an argument it did not
+    understand: printing "scanned=0" for a mistyped path or an unknown flag looks
+    exactly like a clean result, which is the one output of a review that can do
+    harm.
+    """
+    args = sys.argv[1:]
+    if not args or any(a in ("-h", "--help") for a in args):
         print(__doc__)
-        return 2
-    root = os.path.abspath(sys.argv[1])
+        return None, 0 if args else 2
+    unknown = [a for a in args if a.startswith("-") and a not in KNOWN_FLAGS]
+    if unknown:
+        sys.stderr.write("unknown option: %s\n%s\n" % (unknown[0], USAGE))
+        return None, 2
+    positional = [a for a in args if not a.startswith("-")]
+    if len(positional) != 1:
+        sys.stderr.write("expected exactly one path, got %d\n%s\n"
+                         % (len(positional), USAGE))
+        return None, 2
+    root = os.path.abspath(positional[0])
+    if not os.path.exists(root):
+        sys.stderr.write("no such path: %s\n" % root)
+        return None, 2
+    if not os.path.isdir(root):
+        sys.stderr.write("not a directory: %s\n" % root)
+        return None, 2
+    return root, 0
+
+
+def main():
+    root, code = resolve_target()
+    if root is None:
+        return code
     api = public_api_files(root)
     decls, impls = collect(root)
 
@@ -326,6 +360,13 @@ def main():
               f"[excl: TS type-shapes={c['excluded_ts_type_shapes']}, "
               f"ext-traits={c['excluded_extension_traits']}, "
               f"0-impl traits={c['zero_impl_traits_low_confidence']}]")
+        if not decls:
+            print("  NOT APPLICABLE: zero boundaries scanned. This sweep looks for "
+                  "declared boundaries (interface / trait / abstract class); a tree "
+                  "without them — plain JavaScript or Python, for instance — yields "
+                  "0 of 0, which means nothing was read, not that the code is clean. "
+                  "Report it as inapplicable and go looking for multiplying "
+                  "indirection and wrapper modules by reading instead.")
     return 0
 
 

@@ -68,11 +68,49 @@ def referenced_code(repo, doc_rel):
     return sorted(cands)
 
 
-def main():
-    if len(sys.argv) < 2:
+USAGE = "usage: staleness_sweep.py <repo-path>"
+
+
+def resolve_target():
+    """Validate argv. Returns (path, exit_code); path is None when main should exit.
+
+    This sweep already refuses a shallow clone, where the dates lie without
+    erroring. An unreadable argument is the same class of problem: a zero that
+    means "nothing was read" must never be printed as if it meant "clean".
+    """
+    args = sys.argv[1:]
+    if not args or any(a in ("-h", "--help") for a in args):
         print(__doc__)
-        return 2
-    repo = os.path.abspath(sys.argv[1])
+        return None, 0 if args else 2
+    unknown = [a for a in args if a.startswith("-")]
+    if unknown:
+        sys.stderr.write("unknown option: %s\n%s\n" % (unknown[0], USAGE))
+        return None, 2
+    if len(args) != 1:
+        sys.stderr.write("expected exactly one path, got %d\n%s\n"
+                         % (len(args), USAGE))
+        return None, 2
+    repo = os.path.abspath(args[0])
+    if not os.path.exists(repo):
+        sys.stderr.write("no such path: %s\n" % repo)
+        return None, 2
+    if not os.path.isdir(repo):
+        sys.stderr.write("not a directory: %s\n" % repo)
+        return None, 2
+    if not os.path.isdir(os.path.join(repo, ".git")):
+        sys.stderr.write(
+            "not a git repository: %s\n"
+            "Both comparisons in this sweep are commit-date comparisons, so without "
+            "history there is nothing to judge and a clean result would be a lie.\n"
+            % repo)
+        return None, 2
+    return repo, 0
+
+
+def main():
+    repo, code = resolve_target()
+    if repo is None:
+        return code
 
     if os.path.isfile(os.path.join(repo, ".git", "shallow")):
         print("REFUSED: shallow clone — sweep 3 needs full history "
