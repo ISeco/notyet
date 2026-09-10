@@ -66,12 +66,15 @@ You are the user for whom "install less" matters most, and that guidance is the 
 
 | Piece | What it is |
 |---|---|
-| `SKILL.md` | Both modes, the gating questions, the six sweeps, the output rules |
+| `SKILL.md` | The premise, the success criterion, the routing rule that picks a mode, and the output rules. Deliberately small: it loads on every activation |
+| `references/setup.md` | The setup procedure — observe first, three gating questions, the failures that survived them, what to write |
+| `references/review.md` | The review procedure — the six sweeps and the three output lists |
 | `references/failures.md` | The nine model failures — each with its question, threshold and exit condition, plus candidates observed once and not yet confirmed |
 | `references/templates.md` | The exact shape of every file it might write |
 | `references/tooling.md` | Capability → tool mapping, including hooks. Kept separate so the criterion doesn't expire when tools change |
+| `references/measurement.md` | The before/after template you fill in to find out whether the scaffolding helped in your project. Deletes itself once its conclusion is written |
 | `scripts/abstraction_sweep.py` | Review sweep 2, with the exclusion table applied and the denominator printed |
-| `scripts/staleness_sweep.py` | Review sweep 3, last-commit and first-commit comparisons. Refuses a shallow clone, where the dates lie without erroring |
+| `scripts/staleness_sweep.py` | Review sweep 3, last-commit and first-commit comparisons. Labels every zero with the reason it is zero — docs skipped, docs naming no source file, same-day pairs it cannot order, a language it cannot follow — and refuses a shallow clone, where the dates lie without erroring |
 
 Both scripts read only. Neither installs or executes anything in the repository you point them at.
 

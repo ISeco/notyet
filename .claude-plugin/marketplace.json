@@ -6,12 +6,12 @@
     "url": "https://github.com/ISeco"
   },
   "description": "Scaffolding criterion for AI-assisted development.",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "plugins": [
     {
       "name": "notyet",
       "source": "./",
-      "version": "0.1.0",
+      "version": "0.3.0",
       "description": "Sets up or prunes the scaffolding an AI coding agent needs in a repository — and says what the project does not need yet."
     }
   ]
