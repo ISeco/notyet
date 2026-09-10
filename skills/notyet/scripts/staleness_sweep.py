@@ -16,16 +16,58 @@ Needs full commit history. A shallow clone silently reports nonsense, so the
 depth is checked and refused. Blobs are not needed — a `--filter=blob:none`
 partial clone is enough, which is what makes this affordable on a large repo.
 
-Usage: staleness_sweep.py <repo> [doc-glob ...]
+What this sweep can and cannot see, because a denominator you cannot check is
+worse than no denominator: it follows a reference only when the doc names a
+source file whose extension is in CODE_EXT below, and it reads every markdown
+file in the tree except vendored and build directories. Dates are day-granular,
+so a doc and its code changed on the same day cannot be ordered. All three
+limits are reported in the output, with counts, and a zero is always labelled
+with which of them it belongs to.
+
+Usage: staleness_sweep.py <repo>
 """
 import os
 import re
 import subprocess
 import sys
 
+# One source of truth for which references the sweep can follow. The backtick
+# pattern is derived from it, because keeping two lists in sync by hand is the
+# failure this skill is about: the previous version listed .tsx here and not in
+# the pattern, so a doc naming a .tsx file was silently unmatched.
+CODE_EXT = {
+    ".rs", ".go", ".java", ".kt", ".swift", ".cs", ".rb", ".php",
+    ".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs",
+    ".py", ".c", ".h", ".cpp", ".hpp", ".sql", ".toml", ".sh",
+}
+
+# Directories whose markdown is somebody else's. Everything else is a doc.
+SKIP_DIRS = {
+    ".git", "node_modules", "target", "vendor", "third_party", "dist", "build",
+    ".venv", "venv", "site-packages", "__pycache__", ".next", ".cache", ".tox",
+}
+
 RE_LINK = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
-RE_BACKTICK_PATH = re.compile(r"`([\w./-]+\.(?:rs|ts|py|go|java|sql|toml))`")
-CODE_EXT = {".rs", ".ts", ".tsx", ".py", ".go", ".java", ".sql", ".toml"}
+RE_BACKTICK_PATH = re.compile(
+    r"`([\w./-]+\.(?:%s))`" % "|".join(sorted(e.lstrip(".") for e in CODE_EXT)))
+
+
+def source_extensions(repo):
+    """Source-looking extensions present in the repo, most frequent first.
+
+    Used to tell two very different zeros apart: "the docs are in sync" and
+    "this sweep cannot read this codebase's language".
+    """
+    ignore = {".md", ".txt", ".json", ".yml", ".yaml", ".lock", ".toml",
+              ".cfg", ".ini", ".svg", ".png", ".jpg", ".gitignore", ""}
+    counts = {}
+    for dirpath, dirnames, filenames in os.walk(repo):
+        dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
+        for fn in filenames:
+            ext = os.path.splitext(fn)[1].lower()
+            if ext not in ignore:
+                counts[ext] = counts.get(ext, 0) + 1
+    return sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
 
 
 def git(repo, *args):
@@ -119,15 +161,31 @@ def main():
     total = git(repo, "rev-list", "--count", "HEAD")
     print(f"history: {total} commits\n")
 
-    docs = []
+    # Every markdown file in the tree is a doc. The previous version kept only
+    # docs/, .claude/ and the root, which was this author's repo layout mistaken
+    # for a general one: on a plugin repo it silently dropped 5 of 6 docs and
+    # still printed a denominator, which is the exact failure this sweep warns
+    # about. Skipped directories are counted and named in the output instead.
+    docs, skipped = [], {}
     for dirpath, dirnames, filenames in os.walk(repo):
-        dirnames[:] = [d for d in dirnames if d not in {".git", "node_modules", "target"}]
+        for d in list(dirnames):
+            if d in SKIP_DIRS:
+                dirnames.remove(d)
+                if d != ".git":
+                    n = sum(len([f for f in fs if f.endswith(".md")])
+                            for _, _, fs in os.walk(os.path.join(dirpath, d)))
+                    if n:
+                        skipped[d] = skipped.get(d, 0) + n
         for fn in filenames:
             if fn.endswith(".md"):
                 docs.append(os.path.relpath(os.path.join(dirpath, fn), repo).replace(os.sep, "/"))
-    docs = [d for d in docs if d.startswith(("docs/", ".claude/")) or "/" not in d]
 
-    stale, plans, no_refs = [], [], []
+    if skipped:
+        detail = ", ".join("%s (%d)" % (d, n) for d, n in sorted(skipped.items()))
+        print("markdown skipped as vendored or build output: %d in %s"
+              % (sum(skipped.values()), detail))
+
+    stale, plans, no_refs, same_day = [], [], [], []
     for doc in sorted(docs):
         refs = referenced_code(repo, doc)
         if not refs:
@@ -145,11 +203,45 @@ def main():
                 code_first = c_first
         if code_last and d_last < code_last:
             stale.append((doc, d_last, code_last, len(refs)))
+        elif code_last and d_last == code_last:
+            # Dates here are day-granular. A doc and its code last touched on
+            # the same day cannot be ordered, and calling that clean would be
+            # the denominator failure again, one level down.
+            same_day.append(doc)
         if code_first and d_first < code_first:
             plans.append((doc, d_first, code_first))
 
     print(f"docs examined: {len(docs)}   with code references: {len(docs) - len(no_refs)}")
-    print(f"  -> {len(no_refs)} reference no source file, so this sweep cannot judge them\n")
+    print(f"  -> {len(no_refs)} reference no source file, so this sweep cannot judge them")
+
+    # Three zeros that print alike and mean different things.
+    if not docs:
+        print("  NOT APPLICABLE: no markdown found outside vendored directories, so\n"
+              "  there is no documentation for this sweep to judge. That is itself\n"
+              "  worth reporting: it is a finding about the repo, not a clean result.")
+    elif len(no_refs) == len(docs):
+        exts = source_extensions(repo)
+        covered = [e for e, _ in exts if e in CODE_EXT]
+        top = ", ".join("%s x%d" % (e, n) for e, n in exts[:5]) or "none found"
+        if not covered:
+            print("  NOT APPLICABLE: no doc could be judged, and this codebase's\n"
+                  "  languages are ones this sweep cannot follow. Extensions present:\n"
+                  "  %s.\n"
+                  "  A zero here means nothing was read, not that the docs are current.\n"
+                  "  Compare docs against code by reading, or add the extension to\n"
+                  "  CODE_EXT if references to it are followable." % top)
+        else:
+            print("  The sweep can read %s in this repo, so the zero is about how the\n"
+                  "  docs are written: none of them name a source file. Referencing\n"
+                  "  files by path is what makes this check possible at all."
+                  % ", ".join(covered))
+    print()
+
+    if same_day:
+        print(f"UNRESOLVED — {len(same_day)} doc/code pairs last changed on the same\n"
+              f"  day, which day-granular dates cannot order. Not clean, not stale:\n"
+              f"  {', '.join(sorted(same_day)[:6])}"
+              + ("" if len(same_day) <= 6 else f" (+{len(same_day) - 6} more)") + "\n")
 
     print(f"STALE — doc older than the code it describes ({len(stale)}):")
     for doc, d, c, n in sorted(stale, key=lambda x: x[1]):
